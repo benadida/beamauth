@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<script language="javascript">
+
+
+var checkFragment = function() {
+    var frag = document.location.hash;
+    if (frag.length > 1) {
+        window.location.replace('{{beamauth_root}}#');
+	    var frag_array = frag.substring(1).split('|');
+	    doLogin(frag_array[0], frag_array[1]);
+    }
+};
+
+window.onload = function() {
+	var interval = window.setInterval('checkFragment();', 250);
+};
+
+{% if user %}
+var doLogin = function(email, password_secret) {
+    alert('you are already logged in as {{user.email}}');
+}
+{% else %}
+var doLogin = function(email, password_secret) {
+    $('#email').val(email);
+    $('#login-form').show();
+    $('#password').focus();
+    $('#secret').val(password_secret);
+};
+
+{% endif %}
+
+var prepareLoginForm = function() {
+
+    if (this.ready)
+      return true;
+
+    var self = this;
+
+    // go get a challenge
+    new Ajax('get_challenge?cb=' + new Date().getTime(), {
+       method : 'GET',
+       onComplete : function(challenge) {
+           $('response').value = hex_hmac_sha1(password_hmac, challenge);
+	   $('password').value = '';
+	   self.ready = true;
+	   $('login-form-form').submit();
+       }
+    }).request();
+
+    return false;
+};
+
+var showForm = function(el_name) {
+    $('#register-form').hide();
+    $('#resend-form').hide();
+    $('#reset-form').hide();
+
+    $('#' + el_name).show();
+};
+</script>
+
+{% if redirected_p %}
+<div id="warning" style="font-size:150%; font-color:red;" align="center">
+<p>
+BeamAuth just redirected you from a different location.
+<br />
+<p style="font-size:80%;">if you thought you were at the BeamAuth login,<br />
+it might have been a phishing attack.<br />
+Don't worry, BeamAuth is keeping you safe.</p>
+<br />
+<a href="./">go login</a>.
+</div>
+{% else %}
+
+<h1>BeamAuth</h1>
+<br />
+
+<div id="login" style="font-size:140%; border: 1px solid black; padding:10px; margin-right:100px; margin-left:100px;" align="center">
+
+{% if user %}
+
+you are logged in as {{user.email}}<br />
+<a href="logout" style="font-size:80%;">log out</a>.
+
+{% else %}
+
+you are not logged in.<br />
+<br />
+Click your BeamAuth bookmark to log in.
+<div id="login-form" style="display:none;">
+<br />
+<form method="post" id="login-form-form" action="login">
+<table border="0">
+    <input type="hidden" name="secret" id="secret" value="" />
+<tr><td>Email: </td><td><input type="text" name="email" id="email" /></td></tr>
+<tr><td>Password: </td><td><input type="password" name="password" id="password" /></td></tr>
+</table>
+<input type="hidden" id="response" name="response" />
+<input type="submit" value="login!" />
+</form>
+</div>
+
+<br /><br />
+<span style="font-size: 80%;">
+<a href="javascript:void(function(){showForm('register-form');}());">register</a> |
+<a href="javascript:void(function(){showForm('reset-form');}());">forgot your password?</a> | 
+<a href="javascript:void(function(){showForm('resend-form');}());">lost your BeamAuth Bookmark?</a>
+</span>
+
+<br /><br />
+<div id="register-form" style="display: none;">
+<form method="post" onsubmit="if (this.password.value != this.password2.value) {alert('passwords don\'t match'); return false;}" action="register">
+<table border="0">
+<tr><td align="right">Email:</td><td><input type="text" name="email" /></td></tr>
+<tr><td align="right">Password:</td><td><input type="password" name="password" /></td></tr>
+<tr><td align="right">Password <small>(confirm)</small>:</td><td><input type="password" name="password2" /></td></tr>
+</table>
+<input type="submit" value="register!" />
+</form>
+
+</div>
+
+<div id="reset-form" style="display: none;">
+<form method="get" action="send_password_reset_link">
+<table border="0">
+<tr><td align="right">Email:</td><td><input type="text" name="email" /></td></tr>
+</table>
+<input type="submit" value="reset password" />
+</form>
+</div>
+
+<div id="resend-form" style="display: none;">
+<form method="get" action="resend_secret">
+<table border="0">
+<tr><td align="right">Email:</td><td><input type="text" name="email" /></td></tr>
+</table>
+<input type="submit" value="resend bookmarklet" />
+</form>
+</div>
+{% endif %}
+
+
+</div>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<script language="javascript">
+
+window.onload = function() {
+  // get the secret and remove it from the address bar immediately
+  var password_secret = window.location.hash.substring(1);
+  var new_location = window.location.href.replace(/#.*$/, '') + '#';
+  window.location.replace(new_location);
+
+   $('#bookmark_anchor').attr('href','{{beamauth_root}}#{{user.email}}|' + password_secret);
+};
+
+</script>
+
+<h1>BeamAuth Bookmark Setup</h1>
+
+<p>
+You've been confirmed. You should now drag this special login bookmark to your bookmarks bar:
+</p>
+
+<div style="font-size:150%">
+
+<div id="normal-bookmark">
+<a id="bookmark_anchor" onclick="alert('drag it!');return false;" href="#">BeamAuth</a>
+</div>
+
+</div>
+
+<p>
+And now, <a href="{{beamauth_root}}">go login</a>.
+</p>
+
+{% endblock %}
