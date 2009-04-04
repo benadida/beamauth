@@ -18,3 +18,7 @@ INSTALLATION:
 - you can use email_debugger.py if you want to just see what emails would get sent, at the prompt:
 python email_debugger.py
 
+- run reset.sh, which will drop the database, create it, and load the data model.
+- no need to create a default django user.
+
+- go to http://HOST/beamauth
